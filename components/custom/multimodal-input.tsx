@@ -19,16 +19,17 @@ import useWindowSize from "./use-window-size";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 
+// 修改建議動作為課程相關
 const suggestedActions = [
   {
-    title: "Help me book a flight",
-    label: "from San Francisco to London",
-    action: "Help me book a flight from San Francisco to London",
+    title: "幫我找老師",
+    label: "我想學鋼琴",
+    action: "我想找鋼琴老師",
   },
   {
-    title: "What is the status",
-    label: "of flight BA142 flying tmrw?",
-    action: "What is the status of flight BA142 flying tmrw?",
+    title: "查看課程",
+    label: "想看王大明老師的課程",
+    action: "我想看王大明老師的課程",
   },
 ];
 
@@ -97,7 +98,14 @@ export function MultimodalInput({
     }
   }, [attachments, handleSubmit, setAttachments, width]);
 
-  const uploadFile = async (file: File) => {
+  // 修改上傳檔案的類型宣告
+  interface UploadResponse {
+    url: string;
+    pathname: string;
+    contentType: string;
+  }
+
+  const uploadFile = async (file: File): Promise<Attachment | undefined> => {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -108,20 +116,20 @@ export function MultimodalInput({
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const { url, pathname, contentType } = data;
-
+        const data: UploadResponse = await response.json();
         return {
-          url,
-          name: pathname,
-          contentType: contentType,
+          url: data.url,
+          name: data.pathname,
+          contentType: data.contentType,
         };
       } else {
         const { error } = await response.json();
         toast.error(error);
+        return undefined;
       }
     } catch (error) {
-      toast.error("Failed to upload file, please try again!");
+      toast.error("上傳失敗，請重試！");
+      return undefined;
     }
   };
 
@@ -134,16 +142,22 @@ export function MultimodalInput({
       try {
         const uploadPromises = files.map((file) => uploadFile(file));
         const uploadedAttachments = await Promise.all(uploadPromises);
+        
+        // 使用類型保護來過濾上傳結果
         const successfullyUploadedAttachments = uploadedAttachments.filter(
-          (attachment) => attachment !== undefined,
+          (attachment): attachment is Attachment => 
+            attachment !== undefined && 
+            'url' in attachment && 
+            'name' in attachment && 
+            'contentType' in attachment
         );
 
         setAttachments((currentAttachments) => [
           ...currentAttachments,
-          ...successfullyUploadedAttachments,
+          ...successfullyUploadedAttachments
         ]);
       } catch (error) {
-        console.error("Error uploading files!", error);
+        console.error("檔案上傳錯誤！", error);
       } finally {
         setUploadQueue([]);
       }
@@ -216,7 +230,7 @@ export function MultimodalInput({
 
       <Textarea
         ref={textareaRef}
-        placeholder="Send a message..."
+        placeholder="請輸入訊息..."
         value={input}
         onChange={handleInput}
         className="min-h-[24px] overflow-hidden resize-none rounded-lg text-base bg-muted border-none"
@@ -226,7 +240,7 @@ export function MultimodalInput({
             event.preventDefault();
 
             if (isLoading) {
-              toast.error("Please wait for the model to finish its response!");
+              toast.error("請等待助手回覆完成！");
             } else {
               submitForm();
             }
