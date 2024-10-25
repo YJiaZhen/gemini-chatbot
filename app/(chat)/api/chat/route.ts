@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         - 今天的日期是 ${new Date().toLocaleDateString()}。
         - 詢問後續問題以引導用戶進入最佳流程
         - 詢問任何你不知道的細節，比如學生姓名等
+        - 當提問想學習的語言，直接列出該語言的瀏覽老師列表tools:listTeachers
         - 這是最佳流程：
           - 瀏覽老師列表
           - 選擇老師
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
           - 創建預約 (詢問用戶是否進行付款或更改預約)
           - 授權付款 (需要用戶同意，等待用戶完成付款並通知你)
           - 顯示預約確認 (在驗證付款前不要顯示確認)
+        
       `,
     messages: coreMessages,
     tools: {
@@ -258,7 +260,7 @@ export async function DELETE(request: Request) {
     await deleteChatById({ id });
     // 清理該對話的緩存
     conversationTeachers.delete(id);
-    
+
     return new Response("Chat deleted", { status: 200 });
   } catch (error) {
     return new Response("An error occurred while processing your request", {

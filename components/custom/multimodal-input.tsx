@@ -23,13 +23,13 @@ import { Textarea } from "../ui/textarea";
 const suggestedActions = [
   {
     title: "幫我找老師",
-    label: "我想學鋼琴",
-    action: "我想找鋼琴老師",
+    label: "我想學習日文",
+    action: "我想學習日文",
   },
   {
     title: "查看課程",
-    label: "想看王大明老師的課程",
-    action: "我想看王大明老師的課程",
+    label: "有什麼課程可以上",
+    action: "有什麼課程可以上",
   },
 ];
 
