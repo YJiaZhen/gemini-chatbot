@@ -19,6 +19,9 @@ import {
 } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
 
+// 用於存儲對話中的老師資料
+const conversationTeachers = new Map<string, Map<string, Teacher>>();
+
 export async function POST(request: Request) {
   const { id, messages }: { id: string; messages: Array<Message> } =
     await request.json();
@@ -34,7 +37,7 @@ export async function POST(request: Request) {
   );
 
   const result = await streamText({
-    model: geminiFlashModel,  // 改用 geminiFlashModel
+    model: geminiFlashModel, 
     system: `\n
         - 你是一個幫助用戶預約課程的助手！
         - 保持回應簡短，限制在一句話內。
@@ -61,8 +64,18 @@ export async function POST(request: Request) {
           subject: z.string().optional().describe("科目分類，可選"),
         }),
         execute: async ({ subject }) => {
-          const teachers = await generateSampleTeachers({ subject });
-          return teachers;
+          const result = await generateSampleTeachers({ subject });
+          
+          // 儲存這次對話的老師資料
+          if (!conversationTeachers.has(id)) {
+            conversationTeachers.set(id, new Map());
+          }
+          
+          result.teachers.forEach(teacher => {
+            conversationTeachers.get(id)?.set(teacher.id, teacher);
+          });
+          
+          return result;
         },
       },
       getTeacherDetails: {
@@ -72,16 +85,11 @@ export async function POST(request: Request) {
         }),
         execute: async ({ teacherId }) => {
           try {
-            // 先獲取所有老師
-            const { teachers } = await generateSampleTeachers({ subject: undefined });
-            console.log('Available Teachers:', teachers);
-
-            // 找到指定老師
-            const teacher = teachers.find(t => t.id === teacherId);
-            console.log('Found Teacher:', teacher);
-
+            // 從當前對話的緩存中獲取老師資料
+            const teacher = conversationTeachers.get(id)?.get(teacherId);
+            
             if (!teacher) {
-              console.log(`Teacher ${teacherId} not found, generating default data`);
+              console.log(`Teacher ${teacherId} not found in conversation cache`);
               // 生成預設資料
               const defaultTeacher: Teacher = {
                 id: teacherId,
@@ -91,7 +99,7 @@ export async function POST(request: Request) {
                 rating: 4.8,
                 pricePerHour: 1000,
                 availableTime: "週一至週五 上午9點-晚上8點",
-                location: "台中市西屯區",
+                location: "台北市大安區",
                 description: "資深語言教師，專注於實用會話和考試培訓"
               };
 
@@ -102,14 +110,13 @@ export async function POST(request: Request) {
               return details;
             }
 
-            // 使用找到的老師資料
+            // 使用緩存的老師資料
             const details = await getTeacherDetails({
               teacherId,
               teacherInfo: teacher
             });
-            console.log('Generated Teacher Details:', details);
+            
             return details;
-
           } catch (error) {
             console.error('Error in getTeacherDetails:', error);
             throw error;
@@ -217,7 +224,11 @@ export async function POST(request: Request) {
           console.error("Failed to save chat");
         }
       }
-    },
+    // 對話結束後清理緩存
+    setTimeout(() => {
+      conversationTeachers.delete(id);
+    }, 3600000); // 1小時後清理
+  },
   });
 
   return result.toDataStreamResponse({});
@@ -245,7 +256,9 @@ export async function DELETE(request: Request) {
     }
 
     await deleteChatById({ id });
-
+    // 清理該對話的緩存
+    conversationTeachers.delete(id);
+    
     return new Response("Chat deleted", { status: 200 });
   } catch (error) {
     return new Response("An error occurred while processing your request", {
