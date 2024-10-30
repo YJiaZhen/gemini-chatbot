@@ -18,9 +18,33 @@ import {
   saveChat,
 } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
+import { detectLanguage } from "@/utils/languageDetection";
 
-// 用於存儲對話中的老師資料
-const conversationTeachers = new Map<string, Map<string, Teacher>>();
+// 用於存儲對話中的資料
+interface ConversationData {
+  teachers: Map<string, Teacher>;
+  language: string;
+}
+
+const conversationData = new Map<string, ConversationData>();
+
+// 預設教師資料生成函數
+async function getDefaultTeacher(
+  teacherId: string, 
+  language: string = 'en'
+): Promise<Teacher> {
+  return {
+    id: teacherId,
+    name: `Teacher ${teacherId.slice(-3)}`,
+    specialty: "English",
+    experience: "10 years teaching experience",
+    rating: 4.8,
+    pricePerHour: 1000,
+    availableTime: "Monday-Friday 9AM-8PM",
+    location: "Taipei",
+    description: "Experienced language teacher"
+  };
+}
 
 export async function POST(request: Request) {
   const { id, messages }: { id: string; messages: Array<Message> } =
@@ -36,86 +60,101 @@ export async function POST(request: Request) {
     (message) => message.content.length > 0,
   );
 
+  // 檢測用戶語言
+  let conversationLanguage = conversationData.get(id)?.language;
+  
+  if (!conversationLanguage && coreMessages.length > 0) {
+    const lastMessage = coreMessages[coreMessages.length - 1];
+    const { detectedLanguage } = await detectLanguage(lastMessage.content as string);
+    conversationLanguage = detectedLanguage;
+    
+    // 初始化對話數據
+    conversationData.set(id, {
+      teachers: new Map(),
+      language: detectedLanguage
+    });
+  }
+
   const result = await streamText({
-    model: geminiFlashModel, 
-    system: `\n
-        - 你是一個幫助用戶預約課程的助手！
-        - 保持回應簡短，限制在一句話內。
-        - 不要輸出列表。
-        - 每次工具調用後，假裝你在向用戶展示結果，並保持回應簡短。
-        - 今天的日期是 ${new Date().toLocaleDateString()}。
-        - 詢問後續問題以引導用戶進入最佳流程
-        - 詢問任何你不知道的細節，比如學生姓名等
-        - 當提問想學習的語言，直接列出該語言的瀏覽老師列表tools:listTeachers
-        - 這是最佳流程：
-          - 瀏覽老師列表
-          - 選擇老師
-          - 瀏覽該老師資訊
-          - 查看該老師課程列表
-          - 選擇課程
-          - 創建預約 (詢問用戶是否進行付款或更改預約)
-          - 授權付款 (需要用戶同意，等待用戶完成付款並通知你)
-          - 顯示預約確認 (在驗證付款前不要顯示確認)
-        
-      `,
+    model: geminiFlashModel,
+    system: `
+      You are a course booking assistant!
+      
+      - Detect the language of user input and respond in the same language
+      - Keep responses natural and concise (one sentence)
+      - Today's date is ${new Date().toLocaleDateString()}
+      - Current conversation language: ${conversationLanguage || 'auto-detect'}
+      
+      - Guide users through this flow:
+        1. Browse teachers
+        2. Select teacher
+        3. View teacher details
+        4. Browse courses
+        5. Select course
+        6. Create reservation
+        7. Authorize payment (wait for user confirmation)
+        8. Show confirmation (only after payment verified)
+      
+      - For language learning inquiries, directly use listTeachers
+      - Ask for any missing details (e.g. student name)
+      - Keep interactions natural in user's language
+      - Maintain cultural appropriateness
+    `,
     messages: coreMessages,
     tools: {
       listTeachers: {
-        description: "列出所有可用的老師",
+        description: "List available teachers",
         parameters: z.object({
-          subject: z.string().optional().describe("科目分類，可選"),
+          subject: z.string().optional().describe("Subject category"),
+          targetLanguage: z.string().optional().describe("Target language for content"),
         }),
-        execute: async ({ subject }) => {
-          const result = await generateSampleTeachers({ subject });
-          
-          // 儲存這次對話的老師資料
-          if (!conversationTeachers.has(id)) {
-            conversationTeachers.set(id, new Map());
-          }
-          
-          result.teachers.forEach(teacher => {
-            conversationTeachers.get(id)?.set(teacher.id, teacher);
+        execute: async ({ subject, targetLanguage }) => {
+          const result = await generateSampleTeachers({ 
+            subject,
+            targetLanguage: targetLanguage || conversationLanguage
           });
+          
+          // Store teacher data
+          const conversationStore = conversationData.get(id);
+          if (conversationStore) {
+            result.teachers.forEach(teacher => {
+              conversationStore.teachers.set(teacher.id, teacher);
+            });
+          }
           
           return result;
         },
       },
       getTeacherDetails: {
-        description: "獲取老師的詳細信息",
+        description: "Get teacher details",
         parameters: z.object({
-          teacherId: z.string().describe("老師ID"),
+          teacherId: z.string().describe("Teacher ID"),
+          targetLanguage: z.string().optional().describe("Target language for content"),
         }),
-        execute: async ({ teacherId }) => {
+        execute: async ({ teacherId, targetLanguage }) => {
           try {
-            // 從當前對話的緩存中獲取老師資料
-            const teacher = conversationTeachers.get(id)?.get(teacherId);
+            const teacher = conversationData.get(id)?.teachers.get(teacherId);
             
             if (!teacher) {
               console.log(`Teacher ${teacherId} not found in conversation cache`);
-              // 生成預設資料
-              const defaultTeacher: Teacher = {
-                id: teacherId,
-                name: `老師${teacherId.slice(-3)}`,
-                specialty: "美語",
-                experience: "10年教學經驗",
-                rating: 4.8,
-                pricePerHour: 1000,
-                availableTime: "週一至週五 上午9點-晚上8點",
-                location: "台北市大安區",
-                description: "資深語言教師，專注於實用會話和考試培訓"
-              };
+              // Generate default teacher data in target language
+              const defaultTeacher = await getDefaultTeacher(
+                teacherId, 
+                targetLanguage || conversationLanguage
+              );
 
               const details = await getTeacherDetails({
                 teacherId,
-                teacherInfo: defaultTeacher
+                teacherInfo: defaultTeacher,
+                targetLanguage: targetLanguage || conversationLanguage
               });
               return details;
             }
 
-            // 使用緩存的老師資料
             const details = await getTeacherDetails({
               teacherId,
-              teacherInfo: teacher
+              teacherInfo: teacher,
+              targetLanguage: targetLanguage || conversationLanguage
             });
             
             return details;
@@ -126,36 +165,42 @@ export async function POST(request: Request) {
         },
       },
       listCourses: {
-        description: "列出指定老師的課程",
+        description: "List teacher's courses",
         parameters: z.object({
-          teacherId: z.string().describe("老師ID"),
-          teacherSpecialty: z.string().describe("老師專長科目"),
+          teacherId: z.string().describe("Teacher ID"),
+          teacherSpecialty: z.string().describe("Teacher's specialty"),
+          targetLanguage: z.string().optional().describe("Target language for content"),
         }),
-        execute: async ({ teacherId, teacherSpecialty }) => {
+        execute: async ({ teacherId, teacherSpecialty, targetLanguage }) => {
           const courses = await generateSampleCourses({ 
             teacherId,
-            teacherSpecialty 
+            teacherSpecialty,
+            targetLanguage: targetLanguage || conversationLanguage
           });
           return courses;
         },
       },
       createReservation: {
-        description: "創建課程預約",
+        description: "Create course reservation",
         parameters: z.object({
-          courseId: z.string().describe("課程ID"),
-          teacherId: z.string().describe("老師ID"), 
-          studentName: z.string().describe("學生姓名"),
+          courseId: z.string().describe("Course ID"),
+          teacherId: z.string().describe("Teacher ID"),
+          studentName: z.string().describe("Student name"),
           courseDetails: z.object({
-            courseName: z.string().describe("課程名稱"),
-            teacherName: z.string().describe("老師姓名"),
-            startTime: z.string().describe("課程開始時間"),
-            endTime: z.string().describe("課程結束時間"),
-            location: z.string().describe("上課地點"),
-            price: z.number().describe("課程價格"),
+            courseName: z.string().describe("Course name"),
+            teacherName: z.string().describe("Teacher name"),
+            startTime: z.string().describe("Start time"),
+            endTime: z.string().describe("End time"),
+            location: z.string().describe("Location"),
+            price: z.number().describe("Price"),
           }),
         }),
         execute: async (props) => {
-          const { totalPrice } = await generateCoursePrice(props);
+          const { totalPrice } = await generateCoursePrice({
+            ...props,
+            targetLanguage: conversationLanguage
+          });
+          
           const session = await auth();
           const id = generateUUID();
 
@@ -172,23 +217,23 @@ export async function POST(request: Request) {
               totalPrice
             };
           } else {
-            return { error: "用戶未登入！" };
+            return { error: "User not logged in" };
           }
         },
       },
       authorizePayment: {
-        description: "用戶將輸入憑證以授權付款，等待用戶回應完成",
+        description: "Authorize payment",
         parameters: z.object({
-          reservationId: z.string().describe("預約ID"),
+          reservationId: z.string().describe("Reservation ID"),
         }),
         execute: async ({ reservationId }) => {
           return { reservationId };
         },
       },
       verifyPayment: {
-        description: "驗證付款狀態",
+        description: "Verify payment status",
         parameters: z.object({
-          reservationId: z.string().describe("預約ID"),
+          reservationId: z.string().describe("Reservation ID"),
         }),
         execute: async ({ reservationId }) => {
           const reservation = await getReservationById({ id: reservationId });
@@ -198,17 +243,17 @@ export async function POST(request: Request) {
         },
       },
       displayReservationConfirmation: {
-        description: "顯示預約確認信息",
+        description: "Display reservation confirmation",
         parameters: z.object({
-          reservationId: z.string().describe("預約ID"),
-          studentName: z.string().describe("學生姓名"),
+          reservationId: z.string().describe("Reservation ID"),
+          studentName: z.string().describe("Student name"),
           courseDetails: z.object({
-            courseName: z.string().describe("課程名稱"),
-            teacherName: z.string().describe("老師姓名"),
-            startTime: z.string().describe("課程開始時間"),
-            endTime: z.string().describe("課程結束時間"),
-            location: z.string().describe("上課地點"),
-            price: z.number().describe("課程價格"),
+            courseName: z.string().describe("Course name"),
+            teacherName: z.string().describe("Teacher name"),
+            startTime: z.string().describe("Start time"),
+            endTime: z.string().describe("End time"),
+            location: z.string().describe("Location"),
+            price: z.number().describe("Price"),
           }),
         }),
         execute: async (confirmation) => confirmation,
@@ -226,11 +271,12 @@ export async function POST(request: Request) {
           console.error("Failed to save chat");
         }
       }
-    // 對話結束後清理緩存
-    setTimeout(() => {
-      conversationTeachers.delete(id);
-    }, 3600000); // 1小時後清理
-  },
+      
+      // Clean up after 1 hour
+      setTimeout(() => {
+        conversationData.delete(id);
+      }, 3600000);
+    },
   });
 
   return result.toDataStreamResponse({});
@@ -258,8 +304,7 @@ export async function DELETE(request: Request) {
     }
 
     await deleteChatById({ id });
-    // 清理該對話的緩存
-    conversationTeachers.delete(id);
+    conversationData.delete(id);
 
     return new Response("Chat deleted", { status: 200 });
   } catch (error) {

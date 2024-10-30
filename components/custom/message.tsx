@@ -1,6 +1,7 @@
 "use client";
 
 import { Attachment, ToolInvocation } from "ai";
+import { useChat } from "ai/react";
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
@@ -30,6 +31,11 @@ export const Message = ({
  toolInvocations: Array<ToolInvocation> | undefined;
  attachments?: Array<Attachment>;
 }) => {
+  // 獲取對話消息
+ const { messages } = useChat({
+  id: chatId,
+  body: { id: chatId },
+});
  return (
    <motion.div
      className="flex flex-row gap-4 px-4 w-full md:w-[500px] md:px-0 first-of-type:pt-20"
@@ -68,11 +74,11 @@ export const Message = ({
                       <CreateReservation reservation={result} chatId={chatId} />
                      )
                    ) : toolName === "authorizePayment" ? (
-                     <AuthorizePayment intent={result} />
+                     <AuthorizePayment intent={result} chatId={chatId} messages={messages}/>
                    ) : toolName === "displayReservationConfirmation" ? (
                      <DisplayReservation confirmation={result} />
                    ) : toolName === "verifyPayment" ? (
-                     <VerifyPayment result={result} chatId={chatId} />
+                     <VerifyPayment result={result} chatId={chatId} messages={messages}/>
                    ) : (
                      <div className="whitespace-pre-wrap bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4">
                        {JSON.stringify(result, null, 2)}
@@ -92,7 +98,7 @@ export const Message = ({
                    ) : toolName === "createReservation" ? (
                     <CreateReservation chatId={chatId} />
                    ) : toolName === "authorizePayment" ? (
-                     <AuthorizePayment />
+                     <AuthorizePayment chatId={chatId} />
                    ) : toolName === "displayReservationConfirmation" ? (
                      <DisplayReservation />
                    ) : toolName === "verifyPayment" ? (
