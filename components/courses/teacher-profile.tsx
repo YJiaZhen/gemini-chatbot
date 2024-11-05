@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useChat } from "ai/react";
 import { detectLanguage } from "@/utils/languageDetection";
 
 interface TeacherDetails {
@@ -28,7 +29,10 @@ const messageTemplates = {
     teachingStyle: '教學風格',
     perHour: '每小時',
     viewSchedule: '查看可預約時段',
-    loading: '載入中...'
+    loading: '載入中...',
+    messages: {
+      viewSchedule: '查看可預約時段'
+    }
   },
   'en': {
     education: 'Education',
@@ -37,7 +41,10 @@ const messageTemplates = {
     teachingStyle: 'Teaching Style',
     perHour: 'per hour',
     viewSchedule: 'View Available Time Slots',
-    loading: 'Loading...'
+    loading: 'Loading...',
+    messages: {
+      viewSchedule: 'View available time slots'
+    }
   },
   'ja': {
     education: '学歴',
@@ -46,7 +53,10 @@ const messageTemplates = {
     teachingStyle: '指導方針',
     perHour: '時間あたり',
     viewSchedule: '予約可能な時間を確認',
-    loading: '読み込み中...'
+    loading: '読み込み中...',
+    messages: {
+      viewSchedule: '予約可能な時間を確認'
+    }
   },
   'ko': {
     education: '학력',
@@ -55,7 +65,10 @@ const messageTemplates = {
     teachingStyle: '교육 스타일',
     perHour: '시간당',
     viewSchedule: '예약 가능 시간 확인',
-    loading: '로딩 중...'
+    loading: '로딩 중...',
+    messages: {
+      viewSchedule: '예약 가능한 시간 확인'
+    }
   }
 };
 
@@ -71,6 +84,11 @@ export function TeacherProfile({
   };
 }) {
   const [currentLang, setCurrentLang] = useState<SupportedLanguage>('zh-TW');
+  const [isLoading, setIsLoading] = useState(false);
+  const { append } = useChat({
+    id: chatId,
+    body: { id: chatId },
+  });
 
   useEffect(() => {
     if (teacherDetails?.teacher) {
@@ -87,6 +105,19 @@ export function TeacherProfile({
 
   // 獲取當前語言的文字
   const t = messageTemplates[currentLang];
+
+  // 處理查看時段的函數
+  const handleViewSchedule = async () => {
+    setIsLoading(true);
+    try {
+      await append({
+        role: "user",
+        content: t.messages.viewSchedule,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (!teacherDetails || !teacherDetails.teacher) {
     return (
@@ -180,8 +211,19 @@ export function TeacherProfile({
         </div>
 
         {/* 預約按鈕 */}
-        <button className="w-full md:w-auto md:self-end px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
-          {t.viewSchedule}
+        <button 
+          className="w-full md:w-auto md:self-end px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 dark:disabled:bg-emerald-800 text-white rounded-lg transition flex items-center justify-center gap-2"
+          onClick={handleViewSchedule}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              {t.loading}
+            </>
+          ) : (
+            t.viewSchedule
+          )}
         </button>
       </div>
     </div>
