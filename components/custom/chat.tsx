@@ -42,8 +42,10 @@ export function Chat({
         >
           {messages.length === 0 && <Overview />}
 
-          {messages.map((message) => (
-            <PreviewMessage
+          {messages.map((message) => {
+            console.log('message: ', message)
+            return (
+              <PreviewMessage
               key={message.id}
               chatId={id}
               role={message.role}
@@ -51,7 +53,8 @@ export function Chat({
               attachments={message.experimental_attachments}
               toolInvocations={message.toolInvocations}
             />
-          ))}
+            )
+          })}
 
           <div
             ref={messagesEndRef}

@@ -122,6 +122,7 @@ export function ListTeachers({
           key={teacher.id}
           className="cursor-pointer flex flex-row border-b dark:border-zinc-700 py-2 last-of-type:border-none group"
           onClick={() => {
+            console.log('##',getMessage(teacher.name))
             append({
               role: "user",
               content: getMessage(teacher.name),

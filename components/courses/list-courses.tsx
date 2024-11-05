@@ -70,9 +70,13 @@ const messageTemplates = {
     available: '可預約',
     currency: 'NT$',
     level: {
-      beginner: '初級',
-      intermediate: '中級',
-      advanced: '高級'
+      '初級': '初級',
+      '中級': '中級',
+      '高級': '高級',
+      // 額外添加英文對照
+      'beginner': '初級',
+      'intermediate': '中級',
+      'advanced': '高級'
     }
   },
   'en': {
