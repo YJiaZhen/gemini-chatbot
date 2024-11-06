@@ -208,6 +208,24 @@ export function ListCourses({
       return 'Time not available';
     }
 }
+// 添加一個顯示等級的輔助函數
+function getDisplayLevel(level: string, t: typeof messageTemplates[SupportedLanguage]): string {
+  if (!level) return '';
+
+  // 檢查是否為直接匹配
+  if (level in t.level) {
+    return t.level[level as keyof typeof t.level];
+  }
+
+  // 檢查小寫匹配
+  const lowerLevel = level.toLowerCase();
+  if (lowerLevel in t.level) {
+    return t.level[lowerLevel as keyof typeof t.level];
+  }
+
+  // 如果都沒有匹配到，返回原始值
+  return level;
+}
 
 function getDurationInHours(startTime: string, endTime: string): string {
   try {
@@ -251,7 +269,7 @@ function getDurationInHours(startTime: string, endTime: string): string {
             <div className="flex flex-row gap-2 items-center">
               <div className="text-sm font-medium">{course.name}</div>
               <span className="px-2 py-0.5 text-xs rounded-full bg-zinc-200 dark:bg-zinc-700">
-                {t.level[course.level.toLowerCase() as keyof typeof t.level]}
+              {getDisplayLevel(course.level, t)}
               </span>
             </div>
             <div className="text-xs text-muted-foreground">
