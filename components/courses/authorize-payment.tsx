@@ -33,7 +33,7 @@ const translations = {
       info: '銀行帳戶資訊',
       bank: '銀行：國泰世華銀行',
       account: '帳號：1234-5678-9012-3456',
-      name: '戶名：ABC音樂教室',
+      name: '戶名：AI客服媒合通',
       reference: '請在備註欄填寫預約編號：'
     },
     confirmPayment: '確認付款'
@@ -60,7 +60,7 @@ const translations = {
       info: 'Bank Account Information',
       bank: 'Bank: Cathay United Bank',
       account: 'Account: 1234-5678-9012-3456',
-      name: 'Name: ABC Music Studio',
+      name: 'Name: AI Customer Service Platform',
       reference: 'Please include reservation ID: '
     },
     confirmPayment: 'Confirm Payment'
@@ -87,7 +87,7 @@ const translations = {
       info: '振込先情報',
       bank: '銀行：キャセイ銀行',
       account: '口座番号：1234-5678-9012-3456',
-      name: '口座名：ABCミュージック',
+      name: '口座名：AIカスタマーサービスプラットフォーム',
       reference: '振込備考に予約番号を記入してください：'
     },
     confirmPayment: '支払いを確定'
@@ -114,7 +114,7 @@ const translations = {
       info: '계좌 정보',
       bank: '은행: Cathay United Bank',
       account: '계좌: 1234-5678-9012-3456',
-      name: '예금주: ABC Music Studio',
+      name: '예금주: AI 고객 서비스 플랫폼',
       reference: '예약번호를 기재해 주세요: '
     },
     confirmPayment: '결제 확인'
