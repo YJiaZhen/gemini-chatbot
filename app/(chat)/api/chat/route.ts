@@ -20,6 +20,7 @@ import {
 import { generateUUID } from "@/lib/utils";
 import { detectLanguage } from "@/utils/languageDetection";
 
+
 // 用於存儲對話中的資料
 interface ConversationData {
   teachers: Map<string, Teacher>;
@@ -45,6 +46,7 @@ async function getDefaultTeacher(
     description: "Experienced language teacher"
   };
 }
+
 
 export async function POST(request: Request) {
   const { id, messages }: { id: string; messages: Array<Message> } =
@@ -78,30 +80,76 @@ export async function POST(request: Request) {
   const result = await streamText({
     model: geminiFlashModel,
     system: `
-      You are a course booking assistant!
-      
-      - Detect the language of user input and respond in the same language
-      - Keep responses natural and concise (one sentence)
-      - Today's date is ${new Date().toLocaleDateString()}
-      - Current conversation language: ${conversationLanguage || 'auto-detect'}
-      
-      - Guide users through this flow:
-        1. Browse teachers
-        2. Select teacher
-        3. View teacher details
-        4. Browse courses
-        5. Select course
-        6. Create reservation
-        7. Authorize payment (wait for user confirmation)
-        8. Show confirmation (only after payment verified)
-      
-      - For language learning inquiries, directly use listTeachers
-      - Ask for any missing details (e.g. student name)
-      - Keep interactions natural in user's language
-      - Maintain cultural appropriateness
-    `,
+    You are a course booking assistant that can also answer getFAQAnswer!
+
+    Key behaviors:
+    1. Always check FAQ database first using tool getFAQAnswer
+       For FAQ responses:
+       
+       - Keep the complete response object internally
+       - In the display, only show the actual content from translatedResponse
+       - Never reveal the JSON structure in the output
+
+    2. If FAQ found, display the content while preserving:
+       - All text content
+       - Image markdown syntax
+       - Line breaks
+       - Formatting
+
+    3. If no FAQ found, guide through course booking:
+       - Guide users through this flow:
+      1. Browse teachers
+      2. Select teacher
+      3. View teacher details
+      4. Browse courses
+      5. Select course
+      6. Create reservation
+      7. Authorize payment (wait for user confirmation)
+      8. Show confirmation (only after payment verified)
+
+    - Detect the language of user input and respond in the same language
+    - Keep responses natural and concise (one sentence)
+    - Today's date is ${new Date().toLocaleDateString()}
+    - Current conversation language: ${conversationLanguage || 'auto-detect'}
+
+   
+
+    - For language learning inquiries, directly use listTeachers
+    - Ask for any missing details (e.g. student name)
+    - Keep interactions natural in user's language
+    - Maintain cultural appropriateness
+  `,
     messages: coreMessages,
     tools: {
+      getFAQAnswer: {
+        description: "Get answers for user questions from FAQ database",
+        parameters: z.object({
+          query: z.string().describe("The user's question"),
+        }),
+        execute: async ({ query }) => {
+          try {
+            const response = await fetch('http://localhost:3001/api/chat', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ message: query })
+            });
+            console.log('query',query)
+            if (!response.ok) {
+              throw new Error(`API调用失败: ${response.status}`);
+    }
+            const data = await response.json();
+            console.log('data',data)
+            return data.translatedResponse ? data : null;
+            
+  
+          } catch (error) {
+            console.error('FAQ查询错误:', error);
+            return null;
+          }
+        }
+      },
       listTeachers: {
         description: "List available teachers",
         parameters: z.object({

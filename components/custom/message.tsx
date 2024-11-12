@@ -63,6 +63,7 @@ export const Message = ({
 
                return (
                  <div key={toolCallId}>
+                  {/* {toolName} */}
                    {toolName === "listTeachers" ? (
                      <ListTeachers chatId={chatId} results={result} />
                    ) : toolName === "getTeacherDetails" ? (
@@ -80,9 +81,10 @@ export const Message = ({
                    ) : toolName === "verifyPayment" ? (
                      <VerifyPayment result={result} chatId={chatId} messages={messages}/>
                    ) : (
-                     <div className="whitespace-pre-wrap bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4">
-                       {JSON.stringify(result, null, 2)}
-                     </div>
+                    //  <div className="whitespace-pre-wrap bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4">
+                    //    {JSON.stringify(result, null, 2)}
+                    //  </div>
+                    null
                    )}
                  </div>
                );

@@ -20,23 +20,23 @@ services:
     depends_on:
       - postgres
   
-  api:
-    # image: yjz039/chatbotapi:v1
-    container_name: api4
-    # network_mode: "host"
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    restart: always
-    ports:
-      - 3001:3001
-    depends_on:
-      - postgres
-    environment:
-      - DB_USER=${DB_USER}
-      - DB_HOST=postgres
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
+  # api:
+  #   # image: yjz039/chatbotapi:v1
+  #   container_name: api4
+  #   # network_mode: "host"
+  #   build:
+  #     context: .
+  #     dockerfile: ./Dockerfile
+  #   restart: always
+  #   ports:
+  #     - 3001:3001
+  #   depends_on:
+  #     - postgres
+  #   environment:
+  #     - DB_USER=${DB_USER}
+  #     - DB_HOST=postgres
+  #     - DB_NAME=${DB_NAME}
+  #     - DB_PASSWORD=${DB_PASSWORD}
 
 volumes:
   postgres_data_nextauth_project:
