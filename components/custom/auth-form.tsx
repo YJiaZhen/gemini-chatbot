@@ -5,10 +5,14 @@ export function AuthForm({
   action,
   children,
   defaultEmail = "",
+  showConfirmPassword = false,
+  passwordError = "",
 }: {
   action: any;
   children: React.ReactNode;
   defaultEmail?: string;
+  showConfirmPassword?: boolean;
+  passwordError?: string;
 }) {
   return (
     <form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
@@ -17,7 +21,7 @@ export function AuthForm({
           htmlFor="email"
           className="text-zinc-600 font-normal dark:text-zinc-400"
         >
-          Email Address
+          電子郵件
         </Label>
 
         <Input
@@ -35,7 +39,7 @@ export function AuthForm({
           htmlFor="password"
           className="text-zinc-600 font-normal dark:text-zinc-400"
         >
-          Password
+          密碼
         </Label>
 
         <Input
@@ -45,6 +49,31 @@ export function AuthForm({
           type="password"
           required
         />
+
+        {showConfirmPassword && (
+          <>
+            <Label
+              htmlFor="confirmPassword"
+              className="text-zinc-600 font-normal dark:text-zinc-400"
+            >
+              確認密碼
+            </Label>
+
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              className="bg-muted text-md md:text-sm border-none"
+              type="password"
+              required
+            />
+
+            {passwordError && (
+              <span className="text-sm text-red-500 mt-1">
+                {passwordError}
+              </span>
+            )}
+          </>
+        )}
       </div>
 
       {children}

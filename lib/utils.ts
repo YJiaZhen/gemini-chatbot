@@ -87,6 +87,7 @@ function addToolMessageToChat({
 export function convertToUIMessages(
   messages: Array<CoreMessage>,
 ): Array<Message> {
+  console.log('convertToUIMessages messages',messages)
   return messages.reduce((chatMessages: Array<Message>, message) => {
     if (message.role === "tool") {
       return addToolMessageToChat({

@@ -31,6 +31,16 @@ const suggestedActions = [
     label: "有什麼課程可以上",
     action: "有什麼課程可以上",
   },
+  {
+    title: "如何登入我的帳戶？",
+    label: "使用Google登入",
+    action: "如何用Google登入?",
+  },
+  {
+    title: "How do I update my personal information?",
+    label: "update  personal information?",
+    action: "How do I update my personal information?",
+  },
 ];
 
 export function MultimodalInput({
@@ -187,7 +197,7 @@ export function MultimodalInput({
                       content: suggestedAction.action,
                     });
                   }}
-                  className="border-none bg-muted/50 w-full text-left border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 rounded-lg p-3 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex flex-col"
+                  className="border-none bg-muted/100 w-full text-left border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 rounded-lg p-3 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex flex-col"
                 >
                   <span className="font-medium">{suggestedAction.title}</span>
                   <span className="text-zinc-500 dark:text-zinc-400">

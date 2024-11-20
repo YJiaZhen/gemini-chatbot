@@ -68,7 +68,7 @@ app.post('/api/chat', async (req, res) => {
             'ORDER BY (embedding <=> $1) LIMIT 1',
             [queryEmbedding]
         );
-        console.log('result.rows',result.rows)
+
         if (result.rows.length > 0) {
             const { message: dbMessage, response: dbResponse } = result.rows[0];
 

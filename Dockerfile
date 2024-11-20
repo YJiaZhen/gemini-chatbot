@@ -19,20 +19,16 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# 創建臨時的 next.config.js 來禁用 ESLint
-RUN echo 'module.exports = {eslint: {ignoreDuringBuilds: true}}' > next.config.js
+# 創建 next.config.js
+RUN echo 'module.exports = { output: "standalone", eslint: { ignoreDuringBuilds: true } }' > next.config.js
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # 執行建置
 RUN \
@@ -47,42 +43,29 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# 創建上傳目錄並設置權限
-RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
+# 創建必要的目錄
+RUN mkdir -p /app/uploads /app/.next && \
+    chown -R nextjs:nodejs /app
 
-COPY --from=builder /app/public ./public
-
-# 複製必要的運行時檔案
-COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-
-# 複製資料庫遷移檔案
+# 複製必要的檔案與目錄
+# COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# COPY --from=builder --chown=nextjs:nodejs /app/package.json ./
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin/tsx ./
 COPY --from=builder --chown=nextjs:nodejs /app/db ./db
+COPY --from=builder --chown=nextjs:nodejs /app/lib ./lib
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
 EXPOSE 3000
 
 ENV PORT=3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
 
-# 修改啟動命令，先執行資料庫遷移再啟動服務
-CMD tsx db/migrate && node server.js
+CMD ["sh", "-c", "/app/node_modules/.bin/tsx /app/db/migrate.ts && tail -f /dev/null"]

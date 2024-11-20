@@ -1,7 +1,7 @@
 // route.ts
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
-import { geminiFlashModel } from "@/ai";
+import { openaiModel } from "@/ai";
 import {
   generateSampleTeachers,
   getTeacherDetails,
@@ -78,26 +78,28 @@ export async function POST(request: Request) {
   }
 
   const result = await streamText({
-    model: geminiFlashModel,
+    model: openaiModel,
     system: `
-    You are a course booking assistant that can also answer getFAQAnswer!
+    You are a course booking assistant that can also answer FAQs!
 
-    Key behaviors:
-    1. Always check FAQ database first using tool getFAQAnswer
-       For FAQ responses:
-       
-       - Keep the complete response object internally
-       - In the display, only show the actual content from translatedResponse
-       - Never reveal the JSON structure in the output
+Key behaviors:
+1. For any question, FIRST use getFAQAnswer to check FAQ database
+   Example query: "How do I sign up for a free Mandarin class?"
+   For FAQ responses:
+   
+   - Keep the complete response object internally
+   - In the display, only show the actual content from translatedResponse
+   - Never reveal the JSON structure in the output
 
-    2. If FAQ found, display the content while preserving:
-       - All text content
-       - Image markdown syntax
-       - Line breaks
-       - Formatting
+2. If FAQ found in getFAQAnswer response:
+   Display the content while preserving:
+   - All text content
+   - Image markdown syntax
+   - Line breaks
+   - Formatting
 
-    3. If no FAQ found, guide through course booking:
-       - Guide users through this flow:
+3. ONLY IF getFAQAnswer returns no results, guide through course booking:
+   - Guide users through this flow:
       1. Browse teachers
       2. Select teacher
       3. View teacher details
@@ -107,17 +109,21 @@ export async function POST(request: Request) {
       7. Authorize payment (wait for user confirmation)
       8. Show confirmation (only after payment verified)
 
-    - Detect the language of user input and respond in the same language
-    - Keep responses natural and concise (one sentence)
-    - Today's date is ${new Date().toLocaleDateString()}
-    - Current conversation language: ${conversationLanguage || 'auto-detect'}
+Example responses:
+- Q: "How do I sign up for a free Mandarin class?"
+  1. First use getFAQAnswer to check FAQ
+  2. If no FAQ found, then guide through course booking
 
-   
+- Detect the language of user input and respond in the same language
+- Keep responses natural and concise (one sentence)
+- Today's date is ${new Date().toLocaleDateString()}
+- Current conversation language: ${conversationLanguage || 'auto-detect'}
 
-    - For language learning inquiries, directly use listTeachers
-    - Ask for any missing details (e.g. student name)
-    - Keep interactions natural in user's language
-    - Maintain cultural appropriateness
+- For language learning inquiries, ALWAYS check getFAQAnswer first
+- Only proceed to listTeachers if getFAQAnswer returns no results
+- Ask for any missing details (e.g. student name)
+- Keep interactions natural in user's language
+- Maintain cultural appropriateness
   `,
     messages: coreMessages,
     tools: {
