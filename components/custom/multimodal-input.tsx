@@ -37,9 +37,9 @@ const suggestedActions = [
     action: "如何用Google登入?",
   },
   {
-    title: "How do I update my personal information?",
-    label: "update  personal information?",
-    action: "How do I update my personal information?",
+    title: "更新個人資訊？",
+    label: "如何更新我的個人資訊？",
+    action: "我如何更新我的個人資訊？",
   },
 ];
 

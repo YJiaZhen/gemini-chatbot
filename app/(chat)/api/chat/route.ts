@@ -134,7 +134,7 @@ Example responses:
         }),
         execute: async ({ query }) => {
           try {
-            const response = await fetch('http://localhost:3001/api/chat', {
+            const response = await fetch('http://api:3001/api/v1/chat', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
