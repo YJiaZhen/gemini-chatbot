@@ -40,7 +40,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo "Starting Chatbot deployment..."
-            cd ~/app  # 更改為你的專案目錄路徑
+            cd ~/gemini-chatbot  # 更改為你的專案目錄路徑
             
             # 登入 Docker Hub
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
