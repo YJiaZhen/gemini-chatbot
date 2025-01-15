@@ -1,18 +1,23 @@
 FROM node:18-alpine AS base
 
-# 安裝 curl
+# 安裝 curl 和基本依賴
 RUN apk add --no-cache curl
 
 # Install dependencies only when needed
 FROM base AS deps
+# 添加必要的編譯依賴
 RUN apk add --no-cache libc6-compat python3 make g++
 
 WORKDIR /app
 
+# 先啟用 pnpm
+RUN corepack enable pnpm
+
 COPY package.json pnpm-lock.yaml* ./
 RUN npm install -g tsx
 
-RUN corepack enable pnpm && pnpm install
+# 使用 --frozen-lockfile 確保版本一致性
+RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -20,11 +25,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# 設置 next.config.js 忽略 ESLint 和 TypeScript 錯誤
-RUN echo 'module.exports = { output: "standalone", eslint: { ignoreDuringBuilds: true }, typescript: { ignoreBuildErrors: true } }' > next.config.js
-
+# 設置環境變數
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# 先啟用 pnpm，然後構建
 RUN corepack enable pnpm && pnpm run build
 
 # Production image, copy all the files and run next
