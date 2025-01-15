@@ -46,38 +46,24 @@ jobs:
        with:
          host: ${{ secrets.EC2_HOST }}
          username: ${{ secrets.EC2_USERNAME }}
-         key: ${{ secrets.EC2_SSH_KEY }}
-         port: 22
-         script_stop: true
-         debug: true
-         command_timeout: 30m
-         script: |
-           whoami
-           echo "Starting deployment..."
-           
-           # 停止并删除目标容器
-           docker stop $(docker ps -q --filter ancestor=${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest) || true
-           docker rm $(docker ps -aq --filter ancestor=${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest) || true
-           
-           # 删除旧镜像
-           docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest || true
-           
-           # 建立或更新 .env 文件
-           cat > ~/gemini-chatbot/.env << EOL
-           DB_USER=${{ secrets.DB_USER }}
-           DB_HOST=postgres
-           DB_NAME=${{ secrets.DB_NAME }}
-           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-           PORT=3000
-           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-           NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-           NEXT_PUBLIC_API_DOMAIN=${{ secrets.NEXT_PUBLIC_API_DOMAIN }}
-           DATABASE_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/${{ secrets.DB_NAME }}
-           POSTGRES_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/${{ secrets.DB_NAME }}
-           EOL
-           
-           # 登录 Docker Hub
-           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-           
-           # 拉取并运行新容器
-           docker run -d -p 3000:3000 --env-file ~/gemini-chatbot/.env ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script_stop: true
+        debug: true
+        command_timeout: 30m
+        script: |
+          whoami
+          echo "Starting deployment..."
+          
+          # 停止并删除目标容器
+          docker stop $(docker ps -q --filter ancestor=${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest) || true
+          docker rm $(docker ps -aq --filter ancestor=${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest) || true
+          
+          # 删除旧镜像
+          docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest || true
+
+          # 拉取最新的映像檔
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest
+          
+          # 拉取并运行新容器
+          docker run -d -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest
