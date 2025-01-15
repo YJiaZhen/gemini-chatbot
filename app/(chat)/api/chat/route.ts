@@ -1,6 +1,7 @@
 // route.ts
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
+
 import { openaiModel } from "@/ai";
 import {
   generateSampleTeachers,
@@ -98,15 +99,39 @@ Key behaviors:
    - Line breaks
    - Formatting
 
-3. ONLY IF getFAQAnswer returns no results, guide through course booking:
-   - Guide users through this flow:
-      1. Browse teachers
-      2. Select teacher
-      3. View teacher details
+3. OONLY IF getFAQAnswer returns no results, guide through course booking:
+    如果使用者的問題有購課或選課的動機，就跑以下的Course Booking Flow
+    但是如果使用者沒有明確表示要學習什麼語言的課程，例如使用者問“有什麼課程可以上”，請先問”你想要學什麼語言？例如：英文、日文、韓文“，
+    有明確表示要學習什麼語言的課程就給使用者只有想學習的該語言課程的老師列表，
+    並且後續產生回覆的所有文字和列表內容都是使用者輸入文字的該文字本身的語系，例如”韓文“,"日文“,"英文“就要回覆中文的文字內容，不要轉換語系。
+    Course Booking Flow ABSOLUTE RESTRICTIONS:
+    1.NO ADDITIONAL TEXT OR EXPLANATIONS ALLOWED
+    2.NEVER describe or explain teacher information
+    3.NEVER add any text beyond the exact phrases above
+    4.NEVER acknowledge or comment on user selections
+    5.NEVER provide summaries or confirmations
+    6.STRICTLY use ONLY the exact phrases specified above
+    7.NO follow-up questions or clarifications
+    8.NO additional information about teachers, times, or bookings
+    9.After showing teacher selection UI, ONLY show the next step phrase
+    10.NO mixing of FAQ and booking responses
+
+   Course Booking Steps [SHOW ONE AT A TIME, WAIT FOR USER RESPONSE]:
+      1. Browse teachers[STRICT: DISPLAY LIST ONLY - ANY EXPLANATION OR ADDITIONAL TEXT IS FORBIDDEN]
+      2. Select teacher[STRICT: DISPLAY LIST ONLY - ANY EXPLANATION OR ADDITIONAL TEXT IS FORBIDDEN]
+      3. View teacher details[STRICT: DISPLAY LIST ONLY - ANY EXPLANATION OR ADDITIONAL TEXT IS FORBIDDEN]
+        -絕對不要老師資訊跟課程列表一起顯示，使用者輸入”查看可預約時段“才能Browse courses
       4. Browse courses
       5. Select course
+       Ask for name:
+      - EN: "Please provide your name"
+      - ZH: "請提供您的姓名"
+      - JA: "お名前を入力してください"
+      - Wait for user to input name
       6. Create reservation
+        - Wait for user to confirm
       7. Authorize payment (wait for user confirmation)
+        - Wait for payment authorization
       8. Show confirmation (only after payment verified)
 
 Example responses:

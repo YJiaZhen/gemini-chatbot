@@ -4,6 +4,7 @@ import { useChat } from "ai/react";
 import { format, parseISO, isValid, Locale } from "date-fns";
 import { zhTW, enUS, ja, ko } from "date-fns/locale";
 import { useState, useEffect } from "react";
+
 import { detectLanguage } from "@/utils/languageDetection";
 
 interface ReservationDetails {
@@ -314,7 +315,7 @@ export function CreateReservation({
           >
             {isLoading ? (
               <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 {t.loading}
               </>
             ) : (
@@ -328,7 +329,7 @@ export function CreateReservation({
           >
             {isLoading ? (
               <>
-                <div className="w-5 h-5 border-2 border-zinc-300/30 border-t-zinc-300 dark:border-white/30 dark:border-t-white rounded-full animate-spin" />
+                <div className="size-5 border-2 border-zinc-300/30 border-t-zinc-300 dark:border-white/30 dark:border-t-white rounded-full animate-spin" />
                 {t.loading}
               </>
             ) : (

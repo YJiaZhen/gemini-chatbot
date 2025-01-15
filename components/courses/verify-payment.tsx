@@ -3,6 +3,7 @@
 import { useChat } from "ai/react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+
 import { detectLanguage } from "@/utils/languageDetection";
 
 interface PaymentVerificationResult {
@@ -185,9 +186,9 @@ export function VerifyPayment({
     >
       {result.hasCompletedPayment ? (
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+          <div className="size-16 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
             <svg
-              className="w-8 h-8 text-emerald-600 dark:text-emerald-300"
+              className="size-8 text-emerald-600 dark:text-emerald-300"
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -214,7 +215,7 @@ export function VerifyPayment({
             >
               {isLoading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   {t.loading}
                 </>
               ) : (
@@ -228,7 +229,7 @@ export function VerifyPayment({
             >
               {isLoading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-zinc-300/30 border-t-zinc-300 dark:border-white/30 dark:border-t-white rounded-full animate-spin" />
+                  <div className="size-5 border-2 border-zinc-300/30 border-t-zinc-300 dark:border-white/30 dark:border-t-white rounded-full animate-spin" />
                   {t.loading}
                 </>
               ) : (
@@ -239,9 +240,9 @@ export function VerifyPayment({
         </div>
       ) : (
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+          <div className="size-16 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
             <svg
-              className="w-8 h-8 text-amber-600 dark:text-amber-300"
+              className="size-8 text-amber-600 dark:text-amber-300"
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -279,7 +280,7 @@ export function VerifyPayment({
             >
               {isLoading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   {t.loading}
                 </>
               ) : (
@@ -293,7 +294,7 @@ export function VerifyPayment({
             >
               {isLoading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-zinc-300/30 border-t-zinc-300 dark:border-white/30 dark:border-t-white rounded-full animate-spin" />
+                  <div className="size-5 border-2 border-zinc-300/30 border-t-zinc-300 dark:border-white/30 dark:border-t-white rounded-full animate-spin" />
                   {t.loading}
                 </>
               ) : (

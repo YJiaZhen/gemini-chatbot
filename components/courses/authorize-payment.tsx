@@ -1,10 +1,9 @@
 "use client";
-
 import { useChat } from "ai/react";
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { detectLanguage } from "@/utils/languageDetection";
+import { useState, useEffect } from "react";
 
+import { detectLanguage } from "@/utils/languageDetection";
 interface PaymentIntent {
   reservationId: string;
 }
@@ -195,9 +194,9 @@ export function AuthorizePayment({
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+          <div className="size-16 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
             <svg
-              className="w-8 h-8 text-emerald-600 dark:text-emerald-300"
+              className="size-8 text-emerald-600 dark:text-emerald-300"
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -235,8 +234,8 @@ export function AuthorizePayment({
               }`}
               onClick={() => setPaymentMethod("credit")}
             >
-              <div className="w-6 h-6 flex items-center justify-center">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="size-6 flex items-center justify-center">
+                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </div>
@@ -254,8 +253,8 @@ export function AuthorizePayment({
               }`}
               onClick={() => setPaymentMethod("transfer")}
             >
-              <div className="w-6 h-6 flex items-center justify-center">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="size-6 flex items-center justify-center">
+                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
                 </svg>
               </div>
@@ -319,7 +318,7 @@ export function AuthorizePayment({
         >
           {isLoading ? (
             <>
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               {t.loading}
             </>
           ) : (

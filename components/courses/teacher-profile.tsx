@@ -2,6 +2,7 @@
 
 import { useChat } from "ai/react"; 
 import { useEffect, useState } from "react";
+
 import { detectLanguage } from "@/utils/languageDetection";
 
 interface TeacherDetails {
@@ -102,7 +103,7 @@ export function TeacherProfile({
     return (
       <div className="rounded-lg bg-muted p-4 animate-pulse">
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-24 h-24 bg-zinc-200 dark:bg-zinc-700 rounded-full" />
+          <div className="size-24 bg-zinc-200 dark:bg-zinc-700 rounded-full" />
           <div className="flex flex-col gap-4 flex-1">
             <div className="h-7 bg-zinc-200 dark:bg-zinc-700 rounded w-48" />
             <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-24" />
@@ -124,10 +125,10 @@ export function TeacherProfile({
               <img
                 src={teacher.image}
                 alt={teacher.name}
-                className="w-24 h-24 rounded-full object-cover"
+                className="size-24 rounded-full object-cover"
               />
             ) : (
-              <div className="w-24 h-24 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-2xl font-bold text-zinc-500">
+              <div className="size-24 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-2xl font-bold text-zinc-500">
                 {teacher.name[0]}
               </div>
             )}
@@ -205,7 +206,7 @@ export function TeacherProfile({
         >
           {isLoading ? (
             <>
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               {t.loading}
             </>
           ) : (

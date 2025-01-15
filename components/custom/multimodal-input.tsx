@@ -22,9 +22,9 @@ import { Textarea } from "../ui/textarea";
 // 修改建議動作為課程相關
 const suggestedActions = [
   {
-    title: "幫我找老師",
-    label: "我想學習日文",
-    action: "我想學習日文",
+    title: "如何登入我的帳戶？",
+    label: "使用Google登入",
+    action: "如何用Google登入?",
   },
   {
     title: "查看課程",
@@ -32,9 +32,9 @@ const suggestedActions = [
     action: "有什麼課程可以上",
   },
   {
-    title: "如何登入我的帳戶？",
-    label: "使用Google登入",
-    action: "如何用Google登入?",
+    title: "更改課程",
+    label: "重新安排或取消我的課程",
+    action: "我如何重新安排或取消我的課程？",
   },
   {
     title: "更新個人資訊？",

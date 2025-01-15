@@ -129,7 +129,7 @@ export const History = ({ user }: { user: User | undefined }) => {
                 className="font-normal text-sm flex flex-row justify-between text-white"
                 asChild
               >
-                <Link href="/">
+                <Link href="/" onClick={() => setIsHistoryVisible(false)}>
                   <div>Start a new chat</div>
                   <PencilEditIcon size={14} />
                 </Link>
@@ -182,6 +182,7 @@ export const History = ({ user }: { user: User | undefined }) => {
                       <Link
                         href={`/chat/${chat.id}`}
                         className="text-ellipsis overflow-hidden text-left py-2 pl-2 rounded-lg outline-zinc-900"
+                        onClick={() => setIsHistoryVisible(false)}
                       >
                         {getTitleFromChat(chat)}
                       </Link>
