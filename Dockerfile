@@ -102,4 +102,4 @@ USER nextjs
 EXPOSE 3000
 
 # 執行遷移和啟動應用
-CMD ["sh", "-c", "tsx /app/db/migrate.ts && node server.js"]
+CMD ["sh", "-c", "node server.js"]
