@@ -24,9 +24,26 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# 添加預設環境變數
-ENV NEXT_PUBLIC_API_DOMAIN=http://localhost:3001
+# 定義構建時參數
+ARG NEXT_PUBLIC_API_DOMAIN
+ARG DB_USER
+ARG DB_HOST
+ARG DB_NAME
+ARG DB_PASSWORD
+ARG OPENAI_API_KEY
+ARG NEXTAUTH_SECRET
+
+# 設置環境變數
+ENV NEXT_PUBLIC_API_DOMAIN=${NEXT_PUBLIC_API_DOMAIN}
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DB_USER=${DB_USER}
+ENV DB_HOST=${DB_HOST}
+ENV DB_NAME=${DB_NAME}
+ENV DB_PASSWORD=${DB_PASSWORD}
+ENV OPENAI_API_KEY=${OPENAI_API_KEY}
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+ENV DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+ENV POSTGRES_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
 
 # 設置 next.config.js 忽略 ESLint 和 TypeScript 錯誤
 RUN echo 'module.exports = { output: "standalone", eslint: { ignoreDuringBuilds: true }, typescript: { ignoreBuildErrors: true } }' > next.config.js
@@ -38,10 +55,30 @@ RUN corepack enable pnpm && pnpm run build
 FROM base AS runner
 WORKDIR /app
 
+# 定義運行時參數
+ARG NEXT_PUBLIC_API_DOMAIN
+ARG DB_USER
+ARG DB_HOST
+ARG DB_NAME
+ARG DB_PASSWORD
+ARG OPENAI_API_KEY
+ARG NEXTAUTH_SECRET
+
+# 設置環境變數
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PATH=/app/node_modules/.bin:$PATH
-ENV NEXT_PUBLIC_API_DOMAIN=http://localhost:3001
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+ENV NEXT_PUBLIC_API_DOMAIN=${NEXT_PUBLIC_API_DOMAIN}
+ENV DB_USER=${DB_USER}
+ENV DB_HOST=${DB_HOST}
+ENV DB_NAME=${DB_NAME}
+ENV DB_PASSWORD=${DB_PASSWORD}
+ENV OPENAI_API_KEY=${OPENAI_API_KEY}
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+ENV DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+ENV POSTGRES_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -63,9 +100,6 @@ RUN chown -R nextjs:nodejs /app
 USER nextjs
 
 EXPOSE 3000
-
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
 # 執行遷移和啟動應用
 CMD ["sh", "-c", "tsx /app/db/migrate.ts && node server.js"]

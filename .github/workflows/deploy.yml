@@ -24,27 +24,15 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          build-args: |
+            DB_USER=${{ secrets.DB_USER }}
+            DB_HOST=postgres
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            PORT=3000
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            NEXT_PUBLIC_API_DOMAIN=${{ secrets.NEXT_PUBLIC_API_DOMAIN }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:${{ github.sha }}
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo "Starting Chatbot deployment..."
-            cd ~/gemini-chatbot  # 更改為你的專案目錄路徑
-            
-            # 登入 Docker Hub
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-            
-            # 拉取最新的 Chatbot 映像並重啟服務
-            docker compose pull chatbot
-            docker compose up -d
