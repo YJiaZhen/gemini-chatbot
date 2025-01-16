@@ -54,16 +54,14 @@ jobs:
           script: |
             whoami
             echo "Starting deployment..."
-            
-            # 停止并删除目标容器
-            docker stop $(docker ps -q --filter ancestor=${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest) || true
-            docker rm $(docker ps -aq --filter ancestor=${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest) || true
-            
+            cd ~/gemini-chatbot
+
+            # 停止现有服务
+            docker compose down
+
             # 删除旧镜像
             docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest || true
 
-            # 拉取最新的映像檔
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest
-            
-            # 拉取并运行新容器
-            docker run -d -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest
+            # 拉取最新镜像并启动服务
+            docker compose pull
+            docker compose up -d
