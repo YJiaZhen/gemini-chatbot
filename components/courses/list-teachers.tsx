@@ -1,6 +1,7 @@
 "use client";
 
 import { useChat } from "ai/react";
+
 import { useEffect, useState } from "react";
 
 import { detectLanguage } from "@/utils/languageDetection";
