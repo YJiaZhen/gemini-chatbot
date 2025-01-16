@@ -32,6 +32,7 @@ jobs:
             PORT=3000
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
             NEXT_PUBLIC_API_DOMAIN=${{ secrets.NEXT_PUBLIC_API_DOMAIN }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest
