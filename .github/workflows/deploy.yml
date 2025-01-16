@@ -63,5 +63,5 @@ jobs:
             docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest || true
 
             # 拉取最新镜像并启动服务
-            docker compose pull
+            docker compose pull chatbot
             docker compose up -d
