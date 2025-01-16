@@ -59,6 +59,10 @@ jobs:
             # 停止现有服务
             docker compose down
 
+            # 停止并删除目标容器
+            docker stop $(docker ps -q --filter ancestor=${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest) || true
+            docker rm $(docker ps -aq --filter ancestor=${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest) || true 
+
             # 删除旧镜像
             docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/clone-gemini-chatbot:latest || true
 
